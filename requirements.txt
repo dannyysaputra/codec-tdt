@@ -1,0 +1,7 @@
+flask 
+numpy 
+scipy 
+pillow 
+opencv-python
+flask-cors
+pydub
