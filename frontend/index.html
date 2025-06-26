@@ -1,72 +1,74 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <title>Transform Codec</title>
-  <link rel="stylesheet" href="styles.css" />
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Codec TDT - Transform Domain Technique</title>
+    <link rel="stylesheet" href="styles.css" />
+    <script src="https://unpkg.com/wavesurfer.js"></script>
 </head>
 <body>
-  <h2>Codec TDT (Image, Audio, Video)</h2>
 
-  <form id="uploadForm">
-    <input type="file" id="fileInput" required />
-    <select id="fileType">
-      <option value="image">Image</option>
-      <option value="audio">Audio</option>
-      <option value="video">Video</option>
-    </select>
+    <div class="main-container">
+        <header>
+            <h1>Codec TDT</h1>
+            <p>Compress Image, Audio, and Video using Transform Domain Technique (DCT)</p>
+        </header>
 
-    <label for="qualitySlider">Cutoff Level:</label>
-    <input type="range" id="qualitySlider" min="10" max="128" value="30" />
-    <span id="sliderValue">30</span>
+        <section class="card">
+            <form id="uploadForm">
+                <div class="form-group">
+                    <label for="fileInput">1. Choose File</label>
+                    <input type="file" id="fileInput" required />
+                </div>
+                
+                <div class="input-group">
+                    <div class="form-group" style="flex: 1;">
+                        <label for="fileType">2. Select Type</label>
+                        <select id="fileType">
+                            <option value="image">Image</option>
+                            <option value="audio">Audio</option>
+                            <option value="video">Video</option>
+                        </select>
+                    </div>
+                    <div class="form-group slider-container" style="flex: 2;">
+                        <label for="qualitySlider">3. Set Compression Level (<span id="sliderValue">75</span>%)</label>
+                        <input type="range" id="qualitySlider" min="1" max="99" value="75" />
+                    </div>
+                </div>
 
-    <button type="submit">Compress</button>
-  </form>
+                <button type="submit" id="submitBtn">Compress File</button>
+            </form>
+        </section>
 
-  <hr />
+        <section id="loader" class="card">
+            <div class="spinner"></div>
+            <p>Compressing your file... Please wait.</p>
+        </section>
+        
+        <section id="resultContainer" class="card">
+            <!-- Original File Column -->
+            <div class="result-box">
+                <h3>Original</h3>
+                <div class="media-wrapper" id="originalMediaWrapper">
+                    <!-- Original media will be injected here -->
+                </div>
+                <div class="info-bar">Size: <span id="originalSize">N/A</span></div>
+            </div>
 
-  <!-- IMAGE PREVIEW -->
-  <div id="imagePreview" style="display: none; justify-content: center; gap: 20px;">
-    <div>
-      <h3>Original Image:</h3>
-      <img id="originalImage" style="max-width:300px;" />
+            <!-- Compressed File Column -->
+            <div class="result-box">
+                <h3>Compressed (TDT)</h3>
+                <div class="media-wrapper" id="compressedMediaWrapper">
+                     <!-- Compressed media will be injected here -->
+                </div>
+                <div class="info-bar">Size: <span id="compressedSize">N/A</span> | Reduced by: <span id="reductionRatio">N/A</span></div>
+                <a id="downloadBtn" href="#" download>Download Result</a>
+            </div>
+        </section>
+
     </div>
-    <div>
-      <h3>Compressed Image:</h3>
-      <img id="compressedImage" style="max-width:300px;" />
-      <p id="compressionInfo"></p>
-      <a id="downloadBtn" href="#" download="compressed.jpg">Download Result</a>
-    </div>
-  </div>
 
-  <!-- AUDIO PREVIEW -->
-  <div id="audioPreview" style="display: none; justify-content: center; gap: 20px;">
-    <div>
-      <h3>Original Audio:</h3>
-      <audio id="originalAudio" controls></audio>
-    </div>
-    <div>
-      <h3>Compressed Audio:</h3>
-      <audio id="compressedAudio" controls></audio>
-      <p id="compressionAudioInfo"></p>
-      <a id="downloadAudioBtn" href="#" download="compressed.wav">Download Result</a>
-    </div>
-  </div>
-
-  <!-- VIDEO PREVIEW -->
-  <div id="videoPreview" style="display: none; justify-content: center; gap: 20px;">
-    <div>
-      <h3>Original Video:</h3>
-      <video id="originalVideo" controls style="max-width: 320px;"></video>
-    </div>
-    <div>
-      <h3>Compressed Video:</h3>
-      <video id="compressedVideo" controls style="max-width: 320px;"></video>
-      <p id="compressionVideoInfo"></p>
-      <a id="downloadVideoBtn" href="#" download="compressed.mp4">Download Result</a>
-    </div>
-  </div>
-
-  <script src="script.js"></script>
+    <script src="script.js"></script>
 </body>
 </html>
