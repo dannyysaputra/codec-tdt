@@ -1,29 +1,53 @@
-const slider = document.getElementById("qualitySlider");
-const sliderValue = document.getElementById("sliderValue");
-slider.oninput = () => {
-  sliderValue.innerText = slider.value;
-};
+const fileInput = document.querySelector('#fileInput')
+
+function checkFileType(type = null) {
+  document.querySelectorAll('.preview').forEach(e => e.style.display = 'none')
+  document.querySelectorAll('.downloadBtn').forEach(e => e.style.display = 'none')
+  if (type != null) document.querySelector(`#${type}Preview`).style.display = 'flex'
+}
+checkFileType()
+
+fileInput.addEventListener('change', function () {
+  const [file] = fileInput.files
+  const [type] = file.type.split('/')
+  let previewUrl = URL.createObjectURL(file);
+
+  switch (type) {
+    case 'image':
+      document.querySelector(`#imagePreview img`).src = previewUrl
+      break;
+    case 'audio':
+      document.querySelector(`#audioPreview audio`).src = previewUrl
+      break;
+    case 'video':
+      document.querySelector(`#videoPreview video`).src = previewUrl
+      break;
+    default:
+      checkFileType()
+      this.value = null
+      alert('Silahkan pilih file dari salah satu berikut (gambar, audio, video)')
+      return;
+  }
+  checkFileType(type)
+  setTimeout(() => URL.revokeObjectURL(previewUrl), 1000)
+})
 
 document
   .getElementById("uploadForm")
   .addEventListener("submit", async function (e) {
     e.preventDefault();
-    const fileInput = document.getElementById("fileInput");
-    const fileType = document.getElementById("fileType").value;
     const file = fileInput.files[0];
+    const fileType = file.type.split('/')[0]
+    if (!['image', 'audio', 'video'].includes(fileType)) return alert('Silahkan pilih file dari salah satu berikut (gambar, audio, video)')
+
+    document.querySelector('form button').disabled = true
     const formData = new FormData();
     formData.append("file", file);
 
     // DCT/FFT cutoff logic
-    const cutoffSlider = document.getElementById("qualitySlider");
-    if (cutoffSlider) {
-      formData.append("cutoff", cutoffSlider.value);
-    }
-
-    // Tampilkan original audio
-    if (fileType === "audio") {
-      const audioURL = URL.createObjectURL(file);
-      document.getElementById("originalAudio").src = audioURL;
+    const cutoff = document.getElementById("qualitySlider");
+    if (cutoff) {
+      formData.append("cutoff", cutoff.value);
     }
 
     const response = await fetch(`http://localhost:5000/compress/${fileType}`, {
@@ -33,21 +57,14 @@ document
 
     const data = await response.json();
 
-    if (fileType === "image") {
-      const resultImg = `data:image/jpeg;base64,${data.compressed_image}`;
-      document.getElementById("compressedImage").src = resultImg;
-      document.getElementById(
-        "compressionInfo"
-      ).innerText = `Compression Reduced: ${data.compression_ratio}%`;
-      document.getElementById("downloadBtn").href = resultImg;
-    }
+    const result = `data:image/jpeg;base64,${data[`compressed_${fileType}`]}`;
+    document.querySelector(`#${fileType}Preview .compressed`).src = result;
+    document.querySelector(`#${fileType}Preview .compressed`).classList.add('w-100');
+    document.querySelector(
+      `#${fileType}Preview .compressionInfo`
+    ).innerText = `Compression Reduced: ${data.compression_ratio}%`;
+    document.querySelector(`#${fileType}Preview .downloadBtn`).style.display = 'block';
+    document.querySelector(`#${fileType}Preview .downloadBtn`).href = result;
 
-    if (fileType === "audio") {
-      const resultAudio = `data:audio/wav;base64,${data.compressed_audio}`;
-      document.getElementById("compressedAudio").src = resultAudio;
-      document.getElementById(
-        "compressionAudioInfo"
-      ).innerText = `Compression Reduced: ${data.compression_ratio}%`;
-      document.getElementById("downloadAudioBtn").href = resultAudio;
-    }
+    document.querySelector('form button').disabled = false
   });

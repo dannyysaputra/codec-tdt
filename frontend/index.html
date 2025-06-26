@@ -1,72 +1,84 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8" />
   <title>Transform Codec</title>
-  <link rel="stylesheet" href="styles.css" />
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet"
+    integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
 </head>
-<body>
-  <h2>Codec TDT (Image, Audio, Video)</h2>
 
-  <form id="uploadForm">
-    <input type="file" id="fileInput" required />
-    <select id="fileType">
-      <option value="image">Image</option>
-      <option value="audio">Audio</option>
-      <option value="video">Video</option>
-    </select>
+<body style="background-color: #e8e8e8;" style="height: 100vh;">
+  <div class="container bg-white mt-4 rounded py-2">
+    <h2 class="text-center py-2 fw-bold">Codec TDT (Image, Audio, Video)</h2>
 
-    <label for="qualitySlider">Cutoff Level:</label>
-    <input type="range" id="qualitySlider" min="10" max="128" value="30" />
-    <span id="sliderValue">30</span>
+    <form id="uploadForm" class="row my-2">
+      <div class="col-8 form-group">
+        <label for="fileInput" class="form-label">Upload file:</label>
+        <input type="file" id="fileInput" required class="form-control" accept="image/*,audio/*,video/*" />
+      </div>
 
-    <button type="submit">Compress</button>
-  </form>
+      <div class="col-2 form-group">
+        <label for="qualitySlider" class="form-label">Cutoff Level:</label>
+        <input type="number" id="qualitySlider" class="form-control" min="10" max="128" value="30">
+      </div>
 
-  <hr />
+      <div class="col-2 form-group">
+        <label for="" class="form-label">&nbsp;</label>
+        <button type="submit" class="btn btn-success w-100">Compress</button>
+      </div>
+    </form>
 
-  <!-- IMAGE PREVIEW -->
-  <div id="imagePreview" style="display: none; justify-content: center; gap: 20px;">
-    <div>
-      <h3>Original Image:</h3>
-      <img id="originalImage" style="max-width:300px;" />
+    <hr />
+
+    <!-- IMAGE PREVIEW -->
+    <div id="imagePreview" class="preview row">
+      <div class="col-6">
+        <h3 class="text-center">Original Image:</h3>
+        <img id="originalImage" class="w-100" />
+      </div>
+      <div class="col-6">
+        <h3 class="text-center">Compressed Image:</h3>
+        <img class="compressed" class="w-100" />
+        <p class="compressionInfo"></p>
+        <a class="downloadBtn btn btn-info" href="#" download="compressed.jpg">Download Result</a>
+      </div>
     </div>
-    <div>
-      <h3>Compressed Image:</h3>
-      <img id="compressedImage" style="max-width:300px;" />
-      <p id="compressionInfo"></p>
-      <a id="downloadBtn" href="#" download="compressed.jpg">Download Result</a>
+
+    <!-- AUDIO PREVIEW -->
+    <div id="audioPreview" class="preview row">
+      <div class="col-6">
+        <h3 class="text-center">Original Audio:</h3>
+        <audio id="originalAudio" controls class="w-100"></audio>
+      </div>
+      <div class="col-6">
+        <h3 class="text-center">Compressed Audio:</h3>
+        <audio class="compressed" controls class="w-100"></audio>
+        <p class="compressionInfo"></p>
+        <a class="downloadBtn btn btn-info" href="#" download="compressed.wav">Download Result</a>
+      </div>
+    </div>
+
+    <!-- VIDEO PREVIEW -->
+    <div id="videoPreview" class="preview row">
+      <div class="col-6">
+        <h3 class="text-center">Original Video:</h3>
+        <video id="originalVideo" controls class="w-100"></video>
+      </div>
+      <div class="col-6">
+        <h3 class="text-center">Compressed Video:</h3>
+        <video class="compressed" controls class="w-100"></video>
+        <p class="compressionInfo"></p>
+        <a class="downloadBtn btn btn-info" href="#" download="compressed.mp4">Download Result</a>
+      </div>
     </div>
   </div>
 
-  <!-- AUDIO PREVIEW -->
-  <div id="audioPreview" style="display: none; justify-content: center; gap: 20px;">
-    <div>
-      <h3>Original Audio:</h3>
-      <audio id="originalAudio" controls></audio>
-    </div>
-    <div>
-      <h3>Compressed Audio:</h3>
-      <audio id="compressedAudio" controls></audio>
-      <p id="compressionAudioInfo"></p>
-      <a id="downloadAudioBtn" href="#" download="compressed.wav">Download Result</a>
-    </div>
-  </div>
-
-  <!-- VIDEO PREVIEW -->
-  <div id="videoPreview" style="display: none; justify-content: center; gap: 20px;">
-    <div>
-      <h3>Original Video:</h3>
-      <video id="originalVideo" controls style="max-width: 320px;"></video>
-    </div>
-    <div>
-      <h3>Compressed Video:</h3>
-      <video id="compressedVideo" controls style="max-width: 320px;"></video>
-      <p id="compressionVideoInfo"></p>
-      <a id="downloadVideoBtn" href="#" download="compressed.mp4">Download Result</a>
-    </div>
-  </div>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"
+    integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM"
+    crossorigin="anonymous"></script>
 
   <script src="script.js"></script>
 </body>
+
 </html>
