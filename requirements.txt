@@ -6,3 +6,4 @@ opencv-python
 flask-cors
 pydub
 ffmpeg
+ffmpeg-python
