@@ -5,3 +5,4 @@ pillow
 opencv-python
 flask-cors
 pydub
+ffmpeg

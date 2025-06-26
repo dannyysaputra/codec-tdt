@@ -1,70 +1,138 @@
-const fileInput = document.querySelector('#fileInput')
+document.addEventListener('DOMContentLoaded', () => {
+    // Element selectors
+    const uploadForm = document.getElementById('uploadForm');
+    const fileInput = document.getElementById('fileInput');
+    const qualitySlider = document.getElementById('qualitySlider');
+    const sliderValueSpan = document.getElementById('sliderValue');
+    const submitBtn = document.getElementById('submitBtn');
 
-function checkFileType(type = null) {
-  document.querySelectorAll('.preview').forEach(e => e.style.display = 'none')
-  document.querySelectorAll('.downloadBtn').forEach(e => e.style.display = 'none')
-  if (type != null) document.querySelector(`#${type}Preview`).style.display = 'flex'
-}
-checkFileType()
+    const loader = document.getElementById('loader');
+    const resultContainer = document.getElementById('resultContainer');
+    const originalMediaWrapper = document.getElementById('originalMediaWrapper');
+    const compressedMediaWrapper = document.getElementById('compressedMediaWrapper');
+    const originalSizeSpan = document.getElementById('originalSize');
+    const compressedSizeSpan = document.getElementById('compressedSize');
+    const reductionRatioSpan = document.getElementById('reductionRatio');
+    const downloadBtn = document.getElementById('downloadBtn');
 
-fileInput.addEventListener('change', function () {
-  const [file] = fileInput.files
-  const [type] = file.type.split('/')
-  let previewUrl = URL.createObjectURL(file);
-
-  switch (type) {
-    case 'image':
-      document.querySelector(`#imagePreview img`).src = previewUrl
-      break;
-    case 'audio':
-      document.querySelector(`#audioPreview audio`).src = previewUrl
-      break;
-    case 'video':
-      document.querySelector(`#videoPreview video`).src = previewUrl
-      break;
-    default:
-      checkFileType()
-      this.value = null
-      alert('Silahkan pilih file dari salah satu berikut (gambar, audio, video)')
-      return;
-  }
-  checkFileType(type)
-  setTimeout(() => URL.revokeObjectURL(previewUrl), 1000)
-})
-
-document
-  .getElementById("uploadForm")
-  .addEventListener("submit", async function (e) {
-    e.preventDefault();
-    const file = fileInput.files[0];
-    const fileType = file.type.split('/')[0]
-    if (!['image', 'audio', 'video'].includes(fileType)) return alert('Silahkan pilih file dari salah satu berikut (gambar, audio, video)')
-
-    document.querySelector('form button').disabled = true
-    const formData = new FormData();
-    formData.append("file", file);
-
-    // DCT/FFT cutoff logic
-    const cutoff = document.getElementById("qualitySlider");
-    if (cutoff) {
-      formData.append("cutoff", cutoff.value);
-    }
-
-    const response = await fetch(`http://localhost:5000/compress/${fileType}`, {
-      method: "POST",
-      body: formData,
+    // Update slider value display
+    qualitySlider.addEventListener('input', () => {
+        sliderValueSpan.textContent = qualitySlider.value;
     });
 
-    const data = await response.json();
+    // Form submission logic
+    uploadForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
 
-    const result = `data:image/jpeg;base64,${data[`compressed_${fileType}`]}`;
-    document.querySelector(`#${fileType}Preview .compressed`).src = result;
-    document.querySelector(`#${fileType}Preview .compressed`).classList.add('w-100');
-    document.querySelector(
-      `#${fileType}Preview .compressionInfo`
-    ).innerText = `Compression Reduced: ${data.compression_ratio}%`;
-    document.querySelector(`#${fileType}Preview .downloadBtn`).style.display = 'block';
-    document.querySelector(`#${fileType}Preview .downloadBtn`).href = result;
+        const file = fileInput.files[0];
+        if (!file) {
+            alert('Please select a file first.');
+            return;
+        }
 
-    document.querySelector('form button').disabled = false
-  });
+        const fileType = file.type.split('/')[0];
+        if (!['image', 'audio', 'video'].includes(fileType)) {
+            alert('Please select one of the given mime type (image, audio, or video)');
+            return;
+        }
+
+        // UI updates for loading
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Compressing...';
+        resultContainer.style.display = 'none';
+        loader.style.display = 'block';
+
+        // Prepare data
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('cutoff_level', qualitySlider.value);
+
+        try {
+            // API call
+            const response = await fetch(`http://127.0.0.1:5000/compress/${fileType}`, {
+                method: 'POST',
+                body: formData,
+            });
+
+            if (!response.ok) {
+                const err = await response.json();
+                throw new Error(err.error || 'An unknown error occurred.');
+            }
+
+            const data = await response.json();
+
+            // Display results
+            displayResults(file, data, fileType);
+        } catch (error) {
+            alert(`Error: ${error.message}`);
+        } finally {
+            // Reset UI
+            loader.style.display = 'none';
+            submitBtn.disabled = false;
+            submitBtn.textContent = 'Compress File';
+        }
+    });
+
+    function displayResults(originalFile, compressedData, fileType) {
+        // Clear previous results
+        originalMediaWrapper.innerHTML = '';
+        compressedMediaWrapper.innerHTML = '';
+
+        const originalUrl = URL.createObjectURL(originalFile);
+        let compressedUrl;
+
+        // Create media elements
+        if (fileType === 'image') {
+            compressedUrl = `data:${fileType};base64,${compressedData.image_base64}`;
+            originalMediaWrapper.innerHTML = `<img src="${originalUrl}" alt="Original Image">`;
+            compressedMediaWrapper.innerHTML = `<img src="${compressedUrl}" alt="Compressed Image">`;
+            downloadBtn.download = 'compressed_image.jpg';
+        } else if (fileType === 'audio') {
+            compressedUrl = `data:${fileType};base64,${compressedData.audio_base64}`;
+            originalMediaWrapper.innerHTML = `<div><div id="originalWaveform"></div><audio src="${originalUrl}" controls></audio><div>`;
+            compressedMediaWrapper.innerHTML = `<div><div id="compressedWaveform"></div><audio src="${compressedUrl}" controls></audio><div>`;
+
+            // Initialize Wavesurfer
+            initWavesurfer('#originalWaveform', originalUrl, '#e0e0e0', '#d1d1d1');
+            initWavesurfer('#compressedWaveform', compressedUrl, '#4a90e2', '#357ABD');
+            downloadBtn.download = 'compressed_audio.mp3';
+        } else if (fileType === 'video') {
+            compressedUrl = `data:${fileType};base64,${compressedData.video_base64}`;
+            originalMediaWrapper.innerHTML = `<video src="${originalUrl}" controls></video>`;
+            compressedMediaWrapper.innerHTML = `<video src="${compressedUrl}" controls></video>`;
+            downloadBtn.download = 'compressed_video.mp4';
+        }
+
+        // Update info and show container
+        originalSizeSpan.textContent = formatBytes(compressedData.original_size);
+        compressedSizeSpan.textContent = formatBytes(compressedData.compressed_size);
+        reductionRatioSpan.textContent = `${compressedData.compression_ratio}%`;
+
+        downloadBtn.href = compressedUrl;
+        downloadBtn.style.display = 'inline-block';
+        resultContainer.style.display = 'grid';
+
+        setTimeout(() => URL.revokeObjectURL(originalUrl), 1000)
+    }
+
+    function initWavesurfer(container, url, waveColor, progressColor) {
+        WaveSurfer.create({
+            container,
+            waveColor,
+            progressColor,
+            height: 100,
+            responsive: true,
+            barWidth: 2,
+            barRadius: 3,
+        }).load(url)
+    }
+
+    function formatBytes(bytes, decimals = 2) {
+        if (bytes === 0) return '0 Bytes';
+        const k = 1024;
+        const dm = decimals < 0 ? 0 : decimals;
+        const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
+        const i = Math.floor(Math.log(bytes) / Math.log(k));
+        return `${parseFloat((bytes / Math.pow(k, i)).toFixed(dm))} ${sizes[i]}`;
+    }
+});
